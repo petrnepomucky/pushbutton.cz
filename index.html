@@ -1,0 +1,681 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Správa budovy – Aplikace pro nájemníky</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@400;500&display=swap" rel="stylesheet">
+<style>
+/* ═══════════════════════════════════════
+   NASTAVENÍ – ZDE UPRAV BARVY
+   ═══════════════════════════════════════ */
+:root {
+  --brand:       #0f4c81;
+  --brand-dark:  #0a3660;
+  --brand-light: #e8f1fb;
+  --accent:      #f59e0b;
+  --ink:         #111827;
+  --ink-soft:    #4b5563;
+  --ink-muted:   #9ca3af;
+  --surface:     #ffffff;
+  --bg:          #f1f5f9;
+  --border:      #e2e8f0;
+  --font-head:   'Syne', sans-serif;
+  --font-body:   'DM Sans', sans-serif;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+
+body {
+  font-family: var(--font-body);
+  background: var(--bg);
+  color: var(--ink);
+}
+
+/* ── NAV ── */
+nav {
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  padding: 0 32px;
+  position: sticky; top: 0; z-index: 50;
+}
+.nav-inner {
+  max-width: 1200px; margin: 0 auto;
+  display: flex; align-items: center; justify-content: space-between;
+  height: 62px;
+}
+.nav-logo { display: flex; align-items: center; gap: 10px; text-decoration: none; }
+.nav-logo-icon {
+  width: 36px; height: 36px; background: var(--brand);
+  border-radius: 9px; display: flex; align-items: center; justify-content: center;
+}
+.nav-logo-icon svg { width: 18px; height: 18px; stroke: white; fill: none; stroke-width: 2; }
+.nav-logo-text { font-family: var(--font-head); font-size: 15px; font-weight: 700; color: var(--ink); }
+.nav-links { display: flex; gap: 4px; }
+.nav-links a {
+  font-size: 13px; font-weight: 500; color: var(--ink-soft);
+  text-decoration: none; padding: 7px 14px; border-radius: 8px;
+  transition: background .15s, color .15s;
+}
+.nav-links a:hover { background: var(--bg); color: var(--ink); }
+
+/* ── HERO ── */
+.hero {
+  background: var(--brand);
+  padding: 64px 32px 80px;
+  position: relative; overflow: hidden;
+}
+.hero::before {
+  content: ''; position: absolute;
+  top: -100px; right: -80px;
+  width: 360px; height: 360px; border-radius: 50%;
+  background: rgba(255,255,255,0.05);
+}
+.hero::after {
+  content: ''; position: absolute;
+  bottom: -80px; left: -40px;
+  width: 220px; height: 220px; border-radius: 50%;
+  background: rgba(255,255,255,0.04);
+}
+.hero-inner { max-width: 640px; margin: 0 auto; text-align: center; position: relative; z-index: 1; }
+.hero-tag {
+  display: inline-flex; align-items: center; gap: 6px;
+  background: rgba(255,255,255,0.13); color: rgba(255,255,255,0.85);
+  font-size: 11px; font-weight: 600; letter-spacing: .08em;
+  text-transform: uppercase; padding: 5px 14px;
+  border-radius: 20px; margin-bottom: 20px;
+}
+.hero h1 {
+  font-family: var(--font-head);
+  font-size: clamp(28px, 5vw, 48px); font-weight: 800;
+  color: white; line-height: 1.12; margin-bottom: 14px;
+}
+.hero p { font-size: 15px; color: rgba(255,255,255,0.68); max-width: 480px; margin: 0 auto 36px; line-height: 1.6; }
+.hero-stats { display: flex; justify-content: center; gap: 40px; flex-wrap: wrap; }
+.stat-num { font-family: var(--font-head); font-size: 30px; font-weight: 800; color: white; }
+.stat-lbl { font-size: 12px; color: rgba(255,255,255,0.5); margin-top: 2px; }
+
+/* ── SEKCE ── */
+.section { max-width: 1200px; margin: 0 auto; padding: 64px 32px; }
+.sec-head { text-align: center; margin-bottom: 56px; }
+.sec-title { font-family: var(--font-head); font-size: 26px; font-weight: 800; color: var(--ink); margin-bottom: 8px; }
+.sec-sub { font-size: 14px; color: var(--ink-muted); }
+
+/* ── APP ROW ── */
+.app-row {
+  display: grid;
+  grid-template-columns: 1fr 280px;
+  gap: 56px;
+  align-items: center;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  padding: 48px 56px;
+  margin-bottom: 32px;
+  transition: box-shadow .2s;
+}
+.app-row:hover { box-shadow: 0 12px 40px rgba(0,0,0,0.08); }
+.app-row.reverse { grid-template-columns: 280px 1fr; }
+.app-row.reverse .app-info { order: 2; }
+.app-row.reverse .app-phone-wrap { order: 1; }
+
+/* Info strana */
+.app-eyebrow {
+  display: inline-flex; align-items: center; gap: 6px;
+  font-size: 11px; font-weight: 600; letter-spacing: .07em;
+  text-transform: uppercase; padding: 4px 12px;
+  border-radius: 20px; margin-bottom: 16px;
+}
+.eyebrow-red    { background: #fee2e2; color: #b91c1c; }
+.eyebrow-blue   { background: #dbeafe; color: #1d4ed8; }
+.eyebrow-green  { background: #dcfce7; color: #15803d; }
+.eyebrow-amber  { background: #fef3c7; color: #b45309; }
+.eyebrow-purple { background: #ede9fe; color: #6d28d9; }
+
+.app-title {
+  font-family: var(--font-head);
+  font-size: 24px; font-weight: 800; color: var(--ink);
+  margin-bottom: 12px; line-height: 1.2;
+}
+.app-desc { font-size: 14px; color: var(--ink-soft); line-height: 1.7; margin-bottom: 24px; }
+
+.app-features { list-style: none; margin-bottom: 28px; display: flex; flex-direction: column; gap: 10px; }
+.app-features li {
+  display: flex; align-items: flex-start; gap: 10px;
+  font-size: 13px; color: var(--ink-soft);
+}
+.feature-dot {
+  width: 20px; height: 20px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0; margin-top: 1px;
+}
+.feature-dot svg { width: 11px; height: 11px; stroke: white; fill: none; stroke-width: 3; }
+.dot-red    { background: #ef4444; }
+.dot-blue   { background: #3b82f6; }
+.dot-green  { background: #22c55e; }
+.dot-amber  { background: #f59e0b; }
+.dot-purple { background: #8b5cf6; }
+
+.app-actions { display: flex; gap: 10px; flex-wrap: wrap; }
+
+.btn-open {
+  display: inline-flex; align-items: center; gap: 7px;
+  background: var(--brand); color: white;
+  font-family: var(--font-body); font-size: 14px; font-weight: 500;
+  border: none; border-radius: 10px; padding: 12px 22px;
+  cursor: pointer; text-decoration: none;
+  transition: background .15s, transform .1s;
+}
+.btn-open:hover { background: var(--brand-dark); }
+.btn-open:active { transform: scale(.98); }
+.btn-open svg { width: 15px; height: 15px; stroke: white; fill: none; stroke-width: 2.5; }
+
+.btn-qr {
+  display: inline-flex; align-items: center; gap: 7px;
+  background: transparent; color: var(--ink-soft);
+  font-family: var(--font-body); font-size: 14px; font-weight: 500;
+  border: 1.5px solid var(--border); border-radius: 10px; padding: 12px 18px;
+  cursor: pointer; text-decoration: none;
+  transition: border-color .15s, background .15s;
+}
+.btn-qr:hover { background: var(--bg); border-color: var(--ink-muted); }
+.btn-qr svg { width: 15px; height: 15px; stroke: currentColor; fill: none; stroke-width: 2; }
+
+/* ── PHONE MOCKUP ── */
+.app-phone-wrap {
+  display: flex; justify-content: center; align-items: center;
+}
+
+.phone-outer {
+  width: 240px;
+  background: #1a1a2e;
+  border-radius: 36px;
+  padding: 12px;
+  box-shadow: 0 24px 56px rgba(0,0,0,0.22), inset 0 0 0 1px rgba(255,255,255,0.07);
+  position: relative;
+}
+
+/* notch */
+.phone-notch {
+  width: 80px; height: 24px;
+  background: #1a1a2e;
+  border-radius: 0 0 16px 16px;
+  margin: 0 auto 0;
+  position: relative; z-index: 2;
+}
+
+.phone-screen {
+  border-radius: 24px;
+  overflow: hidden;
+  background: #f1f5f9;
+  position: relative;
+}
+
+/* status bar */
+.phone-status {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 6px 14px 4px;
+  background: var(--brand);
+  font-size: 10px; font-weight: 600; color: white;
+  font-family: var(--font-body);
+}
+
+/* iframe uvnitř telefonu */
+.phone-iframe-wrap {
+  height: 420px;
+  overflow: hidden;
+  position: relative;
+}
+
+.phone-iframe-wrap iframe {
+  width: 375px;
+  height: 600px;
+  border: none;
+  transform: scale(0.64);
+  transform-origin: top left;
+  pointer-events: none;
+}
+
+/* placeholder když není URL */
+.phone-placeholder {
+  height: 420px;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  gap: 12px;
+  background: #f8fafc;
+}
+.phone-placeholder .ph-icon {
+  width: 52px; height: 52px; border-radius: 14px;
+  display: flex; align-items: center; justify-content: center;
+}
+.phone-placeholder p { font-size: 11px; color: var(--ink-muted); text-align: center; line-height: 1.5; padding: 0 16px; }
+
+/* home bar */
+.phone-home { height: 20px; display: flex; align-items: center; justify-content: center; background: var(--surface); }
+.phone-home-bar { width: 60px; height: 4px; background: #d1d5db; border-radius: 2px; }
+
+/* ── MODAL QR ── */
+.modal-overlay {
+  display: none; position: fixed; inset: 0;
+  background: rgba(0,0,0,0.5); z-index: 200;
+  align-items: center; justify-content: center;
+  padding: 20px; backdrop-filter: blur(4px);
+}
+.modal-overlay.open { display: flex; }
+.modal {
+  background: var(--surface); border-radius: 20px;
+  width: 100%; max-width: 300px;
+  overflow: hidden;
+  box-shadow: 0 24px 64px rgba(0,0,0,0.2);
+}
+.modal-head {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 16px 20px; border-bottom: 1px solid var(--border);
+}
+.modal-head-title { font-family: var(--font-head); font-size: 15px; font-weight: 700; }
+.modal-close {
+  width: 30px; height: 30px; border: none;
+  background: var(--bg); border-radius: 8px;
+  cursor: pointer; font-size: 16px; color: var(--ink-soft);
+  display: flex; align-items: center; justify-content: center;
+}
+.modal-close:hover { background: var(--border); }
+.qr-body { padding: 28px; text-align: center; }
+.qr-body img { width: 200px; height: 200px; border-radius: 12px; border: 1px solid var(--border); }
+.qr-body p { font-size: 12px; color: var(--ink-muted); margin: 14px 0 16px; line-height: 1.6; }
+.qr-body a {
+  display: inline-flex; align-items: center; gap: 6px;
+  font-size: 13px; font-weight: 500; color: var(--brand); text-decoration: none;
+}
+
+/* ── KONTAKT ── */
+.contact-section { background: var(--ink); padding: 56px 32px; }
+.contact-inner {
+  max-width: 1200px; margin: 0 auto;
+  display: grid; grid-template-columns: 1fr 1fr; gap: 56px; align-items: center;
+}
+.contact-inner h2 {
+  font-family: var(--font-head); font-size: 26px; font-weight: 800;
+  color: white; margin-bottom: 10px;
+}
+.contact-inner p { font-size: 14px; color: #9ca3af; line-height: 1.7; }
+.contact-list { list-style: none; display: flex; flex-direction: column; gap: 16px; }
+.contact-list li { display: flex; align-items: center; gap: 12px; font-size: 14px; color: #d1d5db; }
+.contact-list li svg { width: 16px; height: 16px; stroke: var(--accent); fill: none; stroke-width: 2; flex-shrink: 0; }
+.contact-list a { color: #d1d5db; text-decoration: none; }
+.contact-list a:hover { color: white; }
+
+.footer-bottom {
+  background: #0d1117; padding: 16px;
+  text-align: center; font-size: 12px; color: #374151;
+}
+
+/* ── RESPONSIVE ── */
+@media (max-width: 860px) {
+  .app-row, .app-row.reverse {
+    grid-template-columns: 1fr;
+    padding: 32px 28px;
+    gap: 36px;
+  }
+  .app-row.reverse .app-info { order: 1; }
+  .app-row.reverse .app-phone-wrap { order: 2; }
+  .contact-inner { grid-template-columns: 1fr; gap: 32px; }
+  .nav-links { display: none; }
+  .hero { padding: 40px 20px 52px; }
+}
+</style>
+</head>
+<body>
+
+<!-- ══ NAV – uprav název ══ -->
+<nav>
+  <div class="nav-inner">
+    <a href="#" class="nav-logo">
+      <div class="nav-logo-icon">
+        <svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+      </div>
+      <!-- ══ UPRAV: název ══ -->
+      <span class="nav-logo-text">Správa Budov s.r.o.</span>
+    </a>
+    <div class="nav-links">
+      <a href="#aplikace">Aplikace</a>
+      <a href="#kontakt">Kontakt</a>
+    </div>
+  </div>
+</nav>
+
+<!-- ══ HERO – uprav texty ══ -->
+<section class="hero">
+  <div class="hero-inner">
+    <div class="hero-tag">
+      <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>
+      Digitální správa budov
+    </div>
+    <!-- ══ UPRAV: nadpis a popis ══ -->
+    <h1>Aplikace pro nájemníky a správce</h1>
+    <p>Vše potřebné na jednom místě – přímo ve vašem telefonu, bez instalace.</p>
+    <div class="hero-stats">
+      <div><div class="stat-num">3</div><div class="stat-lbl">Aplikace</div></div>
+      <div><div class="stat-num">48</div><div class="stat-lbl">Bytů</div></div>
+      <div><div class="stat-num">24/7</div><div class="stat-lbl">Dostupnost</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════════════
+     APLIKACE – pro každou aplikaci jeden .app-row blok
+     ══════════════════════════════════════════════════ -->
+<section class="section" id="aplikace">
+  <div class="sec-head">
+    <div class="sec-title">Dostupné aplikace</div>
+    <div class="sec-sub">Otevřete přímo v prohlížeči nebo naskenujte QR kód na nástěnce</div>
+  </div>
+
+  <!-- ════════════════════════════════════════════
+       APLIKACE 1 – Hlášení závad
+       data-url   = URL vaší AppSheet aplikace
+       data-color = barva phone headeru (hex)
+       data-dot   = třída tečky (dot-red/blue/green/amber/purple)
+       ════════════════════════════════════════════ -->
+  <div class="app-row"
+       data-url="https://www.appsheet.com/start/VASE-APP-ID-1"
+       data-color="#b91c1c"
+       data-appname="Hlášení závad">
+
+    <div class="app-info">
+      <!-- ══ UPRAV: barva štítku (eyebrow-red/blue/green/amber/purple) ══ -->
+      <div class="app-eyebrow eyebrow-red">
+        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+        Závady &amp; opravy
+      </div>
+      <!-- ══ UPRAV: název a popis aplikace ══ -->
+      <div class="app-title">Hlášení závad</div>
+      <div class="app-desc">Nahlaste závadu přímo z telefonu – přiložte fotografie, vyberte typ problému a sledujte stav opravy. Správce je informován okamžitě.</div>
+      <ul class="app-features">
+        <!-- ══ UPRAV: funkce aplikace ══ -->
+        <li>
+          <div class="feature-dot dot-red"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div>
+          Nahrání fotografií přímo z fotoaparátu
+        </li>
+        <li>
+          <div class="feature-dot dot-red"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div>
+          Výběr urgentnosti – normální, urgentní, havárie
+        </li>
+        <li>
+          <div class="feature-dot dot-red"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div>
+          E-mail notifikace správci při každém hlášení
+        </li>
+        <li>
+          <div class="feature-dot dot-red"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div>
+          Funguje bez instalace – otevřít v prohlížeči
+        </li>
+      </ul>
+      <div class="app-actions">
+        <a href="#" class="btn-open" onclick="openAppLink(event,this.closest('.app-row'))">
+          <svg viewBox="0 0 24 24"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+          Otevřít aplikaci
+        </a>
+        <a href="#" class="btn-qr" onclick="showQR(event,this.closest('.app-row'))">
+          <svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+          QR kód
+        </a>
+      </div>
+    </div>
+
+    <!-- Telefon s náhledem ══ automaticky se vyplní z data-url ══ -->
+    <div class="app-phone-wrap">
+      <div class="phone-outer">
+        <div class="phone-notch"></div>
+        <div class="phone-screen">
+          <div class="phone-status">
+            <span>9:41</span>
+            <span>●●● 100%</span>
+          </div>
+          <!-- iframe nebo placeholder – vyplní JS -->
+          <div class="phone-iframe-wrap"></div>
+          <div class="phone-home"><div class="phone-home-bar"></div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ════════════════════════════════════════════
+       APLIKACE 2 – Rezervace prostor  (obrácené)
+       ════════════════════════════════════════════ -->
+  <div class="app-row reverse"
+       data-url="https://www.appsheet.com/start/VASE-APP-ID-2"
+       data-color="#1d4ed8"
+       data-appname="Rezervace prostor">
+
+    <div class="app-info">
+      <div class="app-eyebrow eyebrow-blue">
+        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="3" y1="10" x2="21" y2="10"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/></svg>
+        Sdílené prostory
+      </div>
+      <div class="app-title">Rezervace prostor</div>
+      <div class="app-desc">Rezervujte prádelnu, parkovací místo nebo společenskou místnost. Přehledný kalendář dostupnosti pro všechny nájemníky.</div>
+      <ul class="app-features">
+        <li>
+          <div class="feature-dot dot-blue"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div>
+          Prádelna, sklep, parkování, společenská místnost
+        </li>
+        <li>
+          <div class="feature-dot dot-blue"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div>
+          Přehled obsazenosti v reálném čase
+        </li>
+        <li>
+          <div class="feature-dot dot-blue"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div>
+          Rezervace na konkrétní datum a čas
+        </li>
+        <li>
+          <div class="feature-dot dot-blue"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div>
+          Automatické potvrzení rezervace
+        </li>
+      </ul>
+      <div class="app-actions">
+        <a href="#" class="btn-open" onclick="openAppLink(event,this.closest('.app-row'))">
+          <svg viewBox="0 0 24 24"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+          Otevřít aplikaci
+        </a>
+        <a href="#" class="btn-qr" onclick="showQR(event,this.closest('.app-row'))">
+          <svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+          QR kód
+        </a>
+      </div>
+    </div>
+
+    <div class="app-phone-wrap">
+      <div class="phone-outer">
+        <div class="phone-notch"></div>
+        <div class="phone-screen">
+          <div class="phone-status">
+            <span>9:41</span>
+            <span>●●● 100%</span>
+          </div>
+          <div class="phone-iframe-wrap"></div>
+          <div class="phone-home"><div class="phone-home-bar"></div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ════════════════════════════════════════════
+       APLIKACE 3 – Informační nástěnka
+       ════════════════════════════════════════════ -->
+  <div class="app-row"
+       data-url="https://www.appsheet.com/start/VASE-APP-ID-3"
+       data-color="#15803d"
+       data-appname="Informační nástěnka">
+
+    <div class="app-info">
+      <div class="app-eyebrow eyebrow-green">
+        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+        Oznámení
+      </div>
+      <div class="app-title">Informační nástěnka</div>
+      <div class="app-desc">Důležitá oznámení, plánované odstávky vody a elektřiny, provozní dokumenty a kontakty na správce – vždy aktuální.</div>
+      <ul class="app-features">
+        <li>
+          <div class="feature-dot dot-green"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div>
+          Plánované odstávky vody, elektřiny, výtahu
+        </li>
+        <li>
+          <div class="feature-dot dot-green"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div>
+          Dokumenty ke stažení – domovní řád, smlouvy
+        </li>
+        <li>
+          <div class="feature-dot dot-green"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div>
+          Kontakty na havarijní služby a správce
+        </li>
+        <li>
+          <div class="feature-dot dot-green"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div>
+          Archiv starších oznámení
+        </li>
+      </ul>
+      <div class="app-actions">
+        <a href="#" class="btn-open" onclick="openAppLink(event,this.closest('.app-row'))">
+          <svg viewBox="0 0 24 24"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+          Otevřít aplikaci
+        </a>
+        <a href="#" class="btn-qr" onclick="showQR(event,this.closest('.app-row'))">
+          <svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+          QR kód
+        </a>
+      </div>
+    </div>
+
+    <div class="app-phone-wrap">
+      <div class="phone-outer">
+        <div class="phone-notch"></div>
+        <div class="phone-screen">
+          <div class="phone-status">
+            <span>9:41</span>
+            <span>●●● 100%</span>
+          </div>
+          <div class="phone-iframe-wrap"></div>
+          <div class="phone-home"><div class="phone-home-bar"></div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ════════════════════════════════
+       + SEM ZKOPÍRUJ DALŠÍ .app-row
+       pro přidání nové aplikace
+       ════════════════════════════════ -->
+
+</section>
+
+<!-- ══ KONTAKT – uprav údaje ══ -->
+<section class="contact-section" id="kontakt">
+  <div class="contact-inner">
+    <div>
+      <h2>Kontakt na správce</h2>
+      <!-- ══ UPRAV ══ -->
+      <p>Máte dotaz nebo potřebujete pomoc? Jsme k dispozici v pracovní dny od 8 do 16 hodin.</p>
+    </div>
+    <ul class="contact-list">
+      <!-- ══ UPRAV: kontaktní údaje ══ -->
+      <li>
+        <svg viewBox="0 0 24 24"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12 19.79 19.79 0 0 1 1.61 3.18 2 2 0 0 1 3.6 1h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 8.6a16 16 0 0 0 5.55 5.55l.96-.96a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 21 16.92z"/></svg>
+        <a href="tel:+420777000000">+420 777 000 000</a>
+      </li>
+      <li>
+        <svg viewBox="0 0 24 24"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+        <a href="mailto:spravce@budova.cz">spravce@budova.cz</a>
+      </li>
+      <li>
+        <svg viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+        Ulice 123, 700 00 Ostrava
+      </li>
+      <li>
+        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+        Po–Pá 8:00–16:00
+      </li>
+    </ul>
+  </div>
+</section>
+
+<div class="footer-bottom">
+  <!-- ══ UPRAV ══ -->
+  © 2025 Správa Budov s.r.o. · Všechna práva vyhrazena
+</div>
+
+<!-- ══ QR MODAL ══ -->
+<div class="modal-overlay" id="qr-modal" onclick="if(event.target===this)this.classList.remove('open')">
+  <div class="modal">
+    <div class="modal-head">
+      <span class="modal-head-title" id="qr-modal-title">QR kód</span>
+      <button class="modal-close" onclick="document.getElementById('qr-modal').classList.remove('open')">✕</button>
+    </div>
+    <div class="qr-body">
+      <img id="qr-img" src="" alt="QR kód">
+      <p>Naskenujte telefonem nebo vytiskněte na nástěnku ve vchodu.</p>
+      <a id="qr-dl" href="#" download="qr-kod.png">⬇ Stáhnout QR kód</a>
+    </div>
+  </div>
+</div>
+
+<script>
+  /* Vyplň telefony placeholderem nebo iframe */
+  document.querySelectorAll('.app-row').forEach(row => {
+    const url   = row.dataset.url;
+    const color = row.dataset.color || '#0f4c81';
+    const name  = row.dataset.appname || 'Aplikace';
+    const wrap  = row.querySelector('.phone-iframe-wrap');
+    const statusBar = row.querySelector('.phone-status');
+
+    /* nastav barvu status baru */
+    if (statusBar) statusBar.style.background = color;
+
+    if (url && !url.includes('VASE-APP-ID')) {
+      /* reálná URL – vložíme iframe */
+      const iframe = document.createElement('iframe');
+      iframe.src = url;
+      iframe.setAttribute('allow', 'camera; microphone; geolocation');
+      iframe.setAttribute('title', name);
+      wrap.appendChild(iframe);
+    } else {
+      /* placeholder */
+      wrap.innerHTML = `
+        <div class="phone-placeholder">
+          <div class="ph-icon" style="background:${color}22">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="${color}" stroke-width="1.8">
+              <rect x="5" y="2" width="14" height="20" rx="2"/>
+              <line x1="12" y1="18" x2="12.01" y2="18" stroke-width="2.5"/>
+            </svg>
+          </div>
+          <p>Sem se zobrazí náhled vaší AppSheet aplikace.<br>Vyplňte <strong>data-url</strong> v kódu.</p>
+        </div>`;
+    }
+  });
+
+  function openAppLink(e, row) {
+    e.preventDefault();
+    const url = row.dataset.url;
+    if (url && !url.includes('VASE-APP-ID')) {
+      window.open(url, '_blank');
+    } else {
+      alert('Vyplňte prosím data-url atribut s URL vaší AppSheet aplikace.');
+    }
+  }
+
+  function showQR(e, row) {
+    e.preventDefault();
+    const url  = row.dataset.url;
+    const name = row.dataset.appname || 'Aplikace';
+    if (!url || url.includes('VASE-APP-ID')) {
+      alert('Nejprve vyplňte data-url atribut s URL vaší AppSheet aplikace.');
+      return;
+    }
+    const qrSrc = 'https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=' + encodeURIComponent(url);
+    document.getElementById('qr-modal-title').textContent = 'QR – ' + name;
+    document.getElementById('qr-img').src  = qrSrc;
+    document.getElementById('qr-dl').href  = qrSrc;
+    document.getElementById('qr-modal').classList.add('open');
+  }
+</script>
+</body>
+</html>
