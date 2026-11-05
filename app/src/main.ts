@@ -3,6 +3,8 @@ import { supabase } from './supabase'
 import { showAuth } from './auth'
 import { loadFirm, showFirmSetup, type Firm } from './firm'
 import { showContacts } from './screens/contacts'
+import { showInvoices } from './screens/invoices'
+import { showSettings } from './screens/settings'
 import { esc, renderStatus, toggleTheme, type Key } from './ui'
 import { openPalette } from './palette'
 
@@ -18,10 +20,11 @@ window.addEventListener('keydown', (e) => {
 interface Section { id: string; label: string; show: (root: HTMLElement, firm: Firm, base: Key[]) => void }
 const placeholder = (t: string) => (root: HTMLElement) => { root.innerHTML = `<div class="title">${t}</div><p class="hint">Připravujeme v dalším kroku.</p>` }
 const SECTIONS: Section[] = [
-  { id: '1', label: 'Faktury', show: placeholder('Vydané faktury') },
+  { id: '1', label: 'Faktury', show: (r, f, b) => void showInvoices(r, f, b) },
   { id: '2', label: 'Klienti', show: (r, f, b) => void showContacts(r, f, b) },
   { id: '3', label: 'Přijaté', show: placeholder('Přijaté faktury a výdaje') },
   { id: '4', label: 'Přehledy', show: placeholder('Přehledy, DPH a export pro účetní') },
+  { id: '5', label: 'Nastavení', show: (r, f, b) => showSettings(r, f, b) },
 ]
 
 function shell(firm: Firm) {
@@ -48,7 +51,7 @@ function shell(firm: Firm) {
     const i = SECTIONS.findIndex((s) => s.id === e.key)
     if (i >= 0) go(i)
   })
-  go(1)
+  go(0)
 }
 
 function plain(): HTMLElement {

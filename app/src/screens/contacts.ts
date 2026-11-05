@@ -13,6 +13,7 @@ export async function showContacts(root: HTMLElement, firm: Firm, baseKeys: Key[
   let sel = 0
   let filter = ''
   let modal = false
+  let alive = true
 
   const visible = () => {
     const q = filter.toLowerCase()
@@ -22,6 +23,7 @@ export async function showContacts(root: HTMLElement, firm: Firm, baseKeys: Key[
   async function reload() {
     const { data, error } = await supabase.from('contacts').select('id,kind,name,ico,dic,email,phone,address,note')
       .is('deleted_at', null).order('name')
+    if (!alive) return
     if (error) { root.innerHTML = `<div class="err">${esc(error.message)}</div>`; return }
     rows = data as Contact[]
     sel = Math.min(sel, Math.max(visible().length - 1, 0))
@@ -29,6 +31,7 @@ export async function showContacts(root: HTMLElement, firm: Firm, baseKeys: Key[
   }
 
   function draw() {
+    if (!alive) return
     const v = visible()
     root.innerHTML = `
       <div class="title">Klienti a dodavatelé (${v.length})</div>
@@ -62,7 +65,7 @@ export async function showContacts(root: HTMLElement, firm: Firm, baseKeys: Key[
     else if (e.key === '/') { e.preventDefault(); root.querySelector<HTMLInputElement>('#flt')!.focus() }
   }
   document.addEventListener('keydown', onKey)
-  ;(root as any)._cleanup = () => document.removeEventListener('keydown', onKey)
+  ;(root as any)._cleanup = () => { alive = false; document.removeEventListener('keydown', onKey) }
 
   async function remove() {
     const c = visible()[sel]

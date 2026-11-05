@@ -10,10 +10,8 @@ npm install
 npm run dev
 ```
 
-## Nasazení na Cloudflare (Workers Builds)
-Nastavení projektu → Build:
-- Git branch: `kancelar-app`
+## Nasazení na Cloudflare Pages
 - Root directory: `app`
 - Build command: `npm run build`
-- Deploy command: `npx wrangler deploy`
-- Build variables (nutné při buildu, Vite je vkládá do kódu): `VITE_SUPABASE_URL`, `VITE_SUPABASE_KEY`, `VITE_AUTH_DISABLED` (`1` = bez přihlášení, anonymní účet)
+- Build output directory: `dist`
+- Proměnné prostředí: `VITE_SUPABASE_URL`, `VITE_SUPABASE_KEY`, `VITE_AUTH_DISABLED` (`1` = bez přihlášení, anonymní účet)
